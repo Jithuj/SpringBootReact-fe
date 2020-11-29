@@ -1,12 +1,6 @@
 import React, { Component } from "react";
 import { Link, withRouter } from "react-router-dom";
 import { Button, Container, Form, FormGroup, Input, Label } from "reactstrap";
-import {
-  Dropdown,
-  DropdownToggle,
-  DropdownMenu,
-  DropdownItem,
-} from "reactstrap";
 
 import AppNavbar from "./AppNavbar";
 
@@ -49,12 +43,6 @@ class GroupEdit extends Component {
   }
 
   async componentDidMount() {
-    if (this.props.match.params.id !== "new") {
-      const group = await (
-        await fetch(`/api/group/${this.props.match.params.id}`)
-      ).json();
-      this.setState({ item: group });
-    }
     this.setState({
       countries: [
         {
@@ -79,6 +67,18 @@ class GroupEdit extends Component {
         },
       ],
     });
+
+    if (this.props.match.params.id !== "new") {
+      const group = await (
+        await fetch(`/api/group/${this.props.match.params.id}`)
+      ).json();
+      this.setState({ item: group });
+      this.setState({
+        states: this.state.countries.find(
+          (cntry) => cntry.name === group.country
+        ).states,
+      });
+    }
   }
 
   changeCountry(event) {
@@ -94,7 +94,7 @@ class GroupEdit extends Component {
   changeState(event) {
     this.setState({ selectedState: event.target.value });
     const stats = this.state.countries.find(
-      (cntry) => cntry.name === this.state.selectedCountry
+      (cntry) => cntry.name === this.state.item.country
     ).states;
     this.setState({
       cities: stats.find((stat) => stat.name === event.target.value).cities,
@@ -177,9 +177,10 @@ class GroupEdit extends Component {
                   name="country"
                   id="country"
                   placeholder="Country"
+                  value={item.country || ""}
                   onChange={this.changeCountry}
                 >
-                  <option>{item.country || this.state.selectedCountry}</option>
+                  <option>--Choose Country--</option>
                   {this.state.countries.map((e, key) => {
                     return <option key={key}>{e.name}</option>;
                   })}
@@ -191,12 +192,10 @@ class GroupEdit extends Component {
                   type="select"
                   placeholder="State"
                   name="stateOrProvince"
-                  value={this.state.selectedState}
+                  value={item.stateOrProvince || ""}
                   onChange={this.changeState}
                 >
-                  <option>
-                    {item.stateOrProvince || this.state.selectedState}
-                  </option>
+                  <option>--Choose State--</option>
                   {this.state.states.map((e, key) => {
                     return <option key={key}>{e.name}</option>;
                   })}
